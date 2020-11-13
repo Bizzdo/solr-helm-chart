@@ -53,6 +53,7 @@ spec:
       initContainers:
         - name: check-zk
           image: busybox:latest
+          imagePullPolicy: IfNotPresent
           command:
             - 'sh'
             - '-c'
@@ -146,10 +147,10 @@ spec:
             - name: "SOLR_HOST"
               value: "$(POD_HOSTNAME).{{ template "solr.headless-service-name" . }}"
             - name: "ZK_HOST"
-              value: "{{ template "solr.zookeeper-name" . }}:2181"
+              value: "{{ template "zoo-pods" . }}"
             - name: "SOLR_LOG_LEVEL"
               value: "{{ .Values.logLevel }}"
-{{ if .Values.tls.enabled }}
+{{- if .Values.tls.enabled }}
             - name: "SOLR_SSL_ENABLED"
               value: "true"
             - name: "SOLR_SSL_KEY_STORE"
@@ -166,7 +167,13 @@ spec:
               value: "{{ .Values.tls.needClientAuth }}"
             - name: "SOLR_SSL_CHECK_PEER_NAME"
               value: "{{ .Values.tls.checkPeerName }}"
-{{ end }}
+{{- end }}
+{{- if .Values.auth }}{{- if .Values.auth.basic }}
+            - name: "SOLR_AUTH_TYPE"
+              value: "basic"
+            - name: "SOLR_AUTHENTICATION_OPTS"
+              value: "-Dbasicauth={{ .Values.auth.basic }}"
+{{- end }}{{- end }}
           livenessProbe:
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
@@ -174,6 +181,11 @@ spec:
               scheme: "{{ .Values.tls.enabled | ternary "HTTPS" "HTTP" }}"
               path: /solr/admin/info/system
               port: {{ .Values.port }}
+{{- if .Values.auth }}{{- if .Values.auth.basic }}
+              httpHeaders:
+                - name: Authorization
+                  value: Basic {{ .Values.auth.basic | b64enc }}
+{{- end }}{{- end }}
           readinessProbe:
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
@@ -181,6 +193,11 @@ spec:
               scheme: "{{ .Values.tls.enabled | ternary "HTTPS" "HTTP" }}"
               path: /solr/admin/info/system
               port: {{ .Values.port }}
+{{- if .Values.auth }}{{- if .Values.auth.basic }}
+              httpHeaders:
+                - name: Authorization
+                  value: Basic {{ .Values.auth.basic | b64enc }}
+{{- end }}{{- end }}
           volumeMounts:
             - name: {{ template "solr.pvc-name" . }}
               mountPath: /opt/solr/server/home

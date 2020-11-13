@@ -60,6 +60,18 @@ The name of the zookeeper headless service
 {{- end -}}
 
 {{/*
+The names of all zookepper-instances
+*/}}
+{{- define "zoo-pods" -}}
+{{- $vals := . -}}
+{{- $podCount := .Values.zookeeper.replicaCount | int }}
+  {{- range $index0 := until $podCount -}}
+    {{- $index1 := $index0 | add1 -}}
+{{- template "solr.zookeeper-name" $vals }}-{{ $index0 }}.{{ template "solr.zookeeper-service-name" $vals }}:2181{{ if ne $index1 $podCount }},{{ end }}
+  {{- end -}}
+{{- end -}}
+
+{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "solr.chart" -}}
