@@ -10,6 +10,8 @@ This repo is forked from lucidworks/solr-helm-chart, mainly because that repo ha
 
 The status-page for zookeeper in the "Cloud"-menu requires the full list of all instances to properly report the zookeeper status. This is done by expanding the ZK_HOST from the 'zookeeper-headless' service to a list of all pod instances.
 
+Thanks to `loginvarun`'s suggestion in https://github.com/lucidworks/solr-helm-chart/issues/1#issuecomment-572539721 for a solution.
+
 ### Basic Authentication
 
 To enable (advanced) plugins in a Solr collection the Solr Cloud config needs to have (at least) Basic Auth enabled. This is passed on to the solr binary using the -Dbasicauth argument (in cleartext)
